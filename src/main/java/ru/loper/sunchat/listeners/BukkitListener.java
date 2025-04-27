@@ -9,15 +9,24 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import ru.loper.sunchat.config.ConfigManager;
 import ru.loper.sunchat.utils.ChatUtils;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @RequiredArgsConstructor
 public class BukkitListener implements Listener {
+    private final Map<UUID, Long> lastMessageTime = new HashMap<>();
     private final ConfigManager configManager;
 
     @EventHandler(ignoreCancelled = true)
     public void onPlayerChat(AsyncPlayerChatEvent e) {
         Player player = e.getPlayer();
+        UUID uuid = player.getUniqueId();
+        String message = e.getMessage();
+        boolean isGlobal = !configManager.isLocalChatStatus() || message.startsWith("!");
+
         if (configManager.isNewbieEnable()) {
             long time = (System.currentTimeMillis() - player.getFirstPlayed()) / 1000L;
             if (!player.hasPermission("sunchat.newbie.bypass") && time <= configManager.getNewbieCooldown()) {
@@ -29,27 +38,34 @@ public class BukkitListener implements Listener {
             }
         }
 
-        String message = e.getMessage();
-        if (!configManager.isLocalChatStatus() || message.startsWith("!")) {
-            message = removeGlobalPrefix(message);
-            String formatMessage = ChatUtils.replacePlaceholders(player, configManager.getGlobalChatFormat())
-                    .replace("{player}", player.getName())
-                    .replace("{message}", message);
-            e.setFormat(formatMessage);
-            return;
+        if (!player.hasPermission("sunchat.cooldown.bypass")) {
+            long currentTime = System.currentTimeMillis();
+            long cooldown = isGlobal ? configManager.getGlobalChatCooldown() * 1000L
+                    : configManager.getLocalChatCooldown() * 1000L;
+
+            if (lastMessageTime.containsKey(uuid)) {
+                long timeLeft = cooldown - (currentTime - lastMessageTime.get(uuid));
+                if (timeLeft > 0) {
+                    player.sendMessage(configManager.getCooldownChatMessage()
+                            .replace("{time}", ChatUtils.formatTime((int) timeLeft / 1000)));
+                    e.setCancelled(true);
+                    return;
+                }
+            }
+            lastMessageTime.put(uuid, currentTime);
         }
 
-        e.getRecipients().clear();
-        e.getRecipients().add(player);
-        List<Player> recipients = getRadius(player);
-        if (!recipients.isEmpty()) {
-            e.getRecipients().addAll(recipients);
-        }
-
-        String formatMessage = ChatUtils.replacePlaceholders(player, configManager.getGlobalChatFormat())
+        String format = isGlobal ? configManager.getGlobalChatFormat()
+                : configManager.getLocalChatFormat();
+        e.setFormat(ChatUtils.replacePlaceholders(player, format)
                 .replace("{player}", player.getName())
-                .replace("{message}", message);
-        e.setFormat(formatMessage);
+                .replace("{message}", isGlobal ? removeGlobalPrefix(message) : message));
+
+        if (!isGlobal) {
+            e.getRecipients().clear();
+            e.getRecipients().add(player);
+            e.getRecipients().addAll(getRadius(player));
+        }
     }
 
     public List<Player> getRadius(Player player) {
