@@ -1,0 +1,28 @@
+format:
+  local:
+    status: true
+    radius: 100
+    message: "%sunhunger_team_formatted-name%&f{player} &8» &7{message}"
+  global:
+    message: "%sunhunger_team_formatted-name%&f{player} §8» &f{message}"
+
+cooldown:
+  local-chat: 500 #ms
+  global-chat: 1500 #ms
+
+  cooldown-message: "&7Вы слишком быстро пишите! Подождите еще &c%time%."
+
+newbie:
+  enable: false
+  newbie-cooldown: 600
+
+  newbie-chat-block: "&7Для того чтобы писать в чат  подождите еще &c%time%"
+  newbie-command-block: "&7Для того чтобы писать данную команду подождите еще &c%time%"
+
+  newbie-block-commands:
+    - "/m"
+    - "/msg"
+    - "/t"
+    - "/tell"
+    - "/w"
+    - "/whisper"

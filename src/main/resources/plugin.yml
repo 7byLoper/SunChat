@@ -1,0 +1,7 @@
+name: SunChat
+version: '${project.version}'
+main: ru.loper.sunchat.SunChat
+api-version: '1.16'
+author: Loper
+commands:
+  sunchat: {}
