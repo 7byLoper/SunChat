@@ -55,7 +55,7 @@ public class ConfigManager {
     }
 
     public String message(String path) {
-        return Colorize.parse(plugin.getConfig().getString(path, "unknown"));
+        return Colorize.parse(plugin.getConfig().getString(path, "unknown path: " + path));
     }
 
     public FileConfiguration getConfig() {

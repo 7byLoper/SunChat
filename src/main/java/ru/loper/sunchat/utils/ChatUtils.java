@@ -24,7 +24,7 @@ public class ChatUtils {
         if (days > 0) format.append(days).append(" д. ");
         if (hours > 0) format.append(hours).append(" ч. ");
         if (minutes > 0) format.append(minutes).append(" мин. ");
-        if (seconds > 0) format.append(seconds).append(" сек. ");
+        if (seconds > 0) format.append(seconds).append(" сек.");
 
         return format.toString();
     }

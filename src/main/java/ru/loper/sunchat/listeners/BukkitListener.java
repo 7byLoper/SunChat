@@ -1,11 +1,13 @@
 package ru.loper.sunchat.listeners;
 
 import lombok.RequiredArgsConstructor;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import ru.loper.sunchat.SunChat;
 import ru.loper.sunchat.config.ConfigManager;
 import ru.loper.sunchat.utils.ChatUtils;
 
@@ -13,12 +15,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 @RequiredArgsConstructor
 public class BukkitListener implements Listener {
     private final Map<UUID, Long> lastMessageTime = new HashMap<>();
     private final ConfigManager configManager;
+    private final SunChat plugin;
 
     @EventHandler(ignoreCancelled = true)
     public void onPlayerChat(AsyncPlayerChatEvent e) {
@@ -44,10 +46,10 @@ public class BukkitListener implements Listener {
                     : configManager.getLocalChatCooldown() * 1000L;
 
             if (lastMessageTime.containsKey(uuid)) {
-                long timeLeft = cooldown - (currentTime - lastMessageTime.get(uuid));
+                long timeLeft = (cooldown - (currentTime - lastMessageTime.get(uuid))) / 1000;
                 if (timeLeft > 0) {
                     player.sendMessage(configManager.getCooldownChatMessage()
-                            .replace("{time}", ChatUtils.formatTime((int) timeLeft / 1000)));
+                            .replace("{time}", ChatUtils.formatTime((int) timeLeft)));
                     e.setCancelled(true);
                     return;
                 }
@@ -62,9 +64,11 @@ public class BukkitListener implements Listener {
                 .replace("{message}", isGlobal ? removeGlobalPrefix(message) : message));
 
         if (!isGlobal) {
-            e.getRecipients().clear();
-            e.getRecipients().add(player);
-            e.getRecipients().addAll(getRadius(player));
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                e.getRecipients().clear();
+                e.getRecipients().add(player);
+                e.getRecipients().addAll(getRadius(player));
+            });
         }
     }
 

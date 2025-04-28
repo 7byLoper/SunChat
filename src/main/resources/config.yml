@@ -7,17 +7,17 @@ format:
     message: "%sunhunger_team_formatted-name%&f{player} §8» &f{message}"
 
 cooldown:
-  local-chat: 500 #ms
-  global-chat: 1500 #ms
+  local-chat: 2
+  global-chat: 5
 
-  cooldown-message: "&7Вы слишком быстро пишите! Подождите еще &c%time%."
+  message: "&7Вы слишком быстро пишите! Подождите еще &c{time}."
 
 newbie:
   enable: false
   newbie-cooldown: 600
 
-  newbie-chat-block: "&7Для того чтобы писать в чат  подождите еще &c%time%"
-  newbie-command-block: "&7Для того чтобы писать данную команду подождите еще &c%time%"
+  newbie-chat-block: "&7Для того чтобы писать в чат  подождите еще &c{time}"
+  newbie-command-block: "&7Для того чтобы писать данную команду подождите еще &c{time}"
 
   newbie-block-commands:
     - "/m"
