@@ -11,6 +11,11 @@ import java.util.List;
 public class ConfigManager {
     private final SunChat plugin;
 
+    private boolean closeChat = false;
+    private boolean changeCloseStatusMessageEnable;
+    private String changeCloseStatusMessage;
+    private String chatIsCloseMessage;
+
     private boolean localChatStatus;
     private int localChatRadius;
     private String localChatFormat;
@@ -38,6 +43,11 @@ public class ConfigManager {
     }
 
     private void loadValues() {
+        closeChat = getConfig().getBoolean("close-chat.status");
+        changeCloseStatusMessageEnable = getConfig().getBoolean("close-chat.change-close-status-message.enable");
+        changeCloseStatusMessage = message("close-chat.change-close-status-message.value");
+        chatIsCloseMessage = message("close-chat.chat-is-close-message");
+
         localChatStatus = getConfig().getBoolean("format.local.status");
         localChatRadius = getConfig().getInt("format.local.radius");
         localChatFormat = message("format.local.message");
@@ -52,6 +62,12 @@ public class ConfigManager {
         newbieChatBlockMessage = message("newbie.newbie-chat-block");
         newbieCommandBlockMessage = message("newbie.newbie-command-block");
         newbieBlockCommands = getConfig().getStringList("newbie.newbie-block-commands");
+    }
+
+    public void setCloseChat(boolean status) {
+        closeChat = status;
+        getConfig().set("close-chat.status", status);
+        plugin.saveConfig();
     }
 
     public String message(String path) {

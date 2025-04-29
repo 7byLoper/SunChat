@@ -29,9 +29,15 @@ public class BukkitListener implements Listener {
         String message = e.getMessage();
         boolean isGlobal = !configManager.isLocalChatStatus() || message.startsWith("!");
 
+        if(!player.hasPermission("sunchat.bypass.close") && configManager.isCloseChat()){
+            player.sendMessage(configManager.getChatIsCloseMessage());
+            e.setCancelled(true);
+            return;
+        }
+
         if (configManager.isNewbieEnable()) {
             long time = (System.currentTimeMillis() - player.getFirstPlayed()) / 1000L;
-            if (!player.hasPermission("sunchat.newbie.bypass") && time <= configManager.getNewbieCooldown()) {
+            if (!player.hasPermission("sunchat.bypass.newbie") && time <= configManager.getNewbieCooldown()) {
                 int timeLeft = configManager.getNewbieCooldown() - (int) time;
                 player.sendMessage(configManager.getNewbieChatBlockMessage()
                         .replace("{time}", ChatUtils.formatTime(timeLeft)));
@@ -40,7 +46,7 @@ public class BukkitListener implements Listener {
             }
         }
 
-        if (!player.hasPermission("sunchat.cooldown.bypass")) {
+        if (!player.hasPermission("sunchat.bypass.cooldown")) {
             long currentTime = System.currentTimeMillis();
             long cooldown = isGlobal ? configManager.getGlobalChatCooldown() * 1000L
                     : configManager.getLocalChatCooldown() * 1000L;
