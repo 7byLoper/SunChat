@@ -1,10 +1,12 @@
 package ru.loper.sunchat.command;
 
 import lombok.RequiredArgsConstructor;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.loper.sunchat.config.ConfigManager;
@@ -18,7 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ChatCommand implements CommandExecutor, TabCompleter {
     private final ConfigManager configManager;
-    private final List<String> COMMANDS = List.of("reload", "status");
+    private final List<String> COMMANDS = List.of("reload", "status", "clear");
 
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
@@ -27,9 +29,30 @@ public class ChatCommand implements CommandExecutor, TabCompleter {
         switch (args[0].toLowerCase()) {
             case "reload" -> handleReload(commandSender);
             case "status" -> handleChatStatus(commandSender, args);
+            case "clear" -> handleClearChat(commandSender);
+            default -> sendUsage(commandSender);
         }
 
         return true;
+    }
+
+    private void sendUsage(CommandSender sender) {
+        sender.sendMessage(Colorize.parse("&a ▶ &fДоступные аргументы: " + String.join(", ", COMMANDS)));
+    }
+
+    private void handleClearChat(CommandSender sender) {
+        int clearedPlayers = 0;
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (!player.hasPermission("sunchat.clearbypass")) {
+                player.sendMessage("\n".repeat(100));
+                clearedPlayers++;
+            }
+        }
+
+        sender.sendMessage(Colorize.parse(String.format(
+                "&a ▶ &fЧат очищен &7(%d игрокам)",
+                clearedPlayers
+        )));
     }
 
     private void handleReload(CommandSender sender) {
@@ -83,16 +106,18 @@ public class ChatCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
-        if (args.length == 0) return Collections.emptyList();
+        if (!commandSender.hasPermission("sunchat.admin")) return Collections.emptyList();
 
-        List<String> complete = new ArrayList<>();
+        List<String> completions = new ArrayList<>();
 
         if (args.length == 1) {
-            complete.addAll(COMMANDS);
+            completions.addAll(COMMANDS);
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("status")) {
+            completions.addAll(List.of("open", "close"));
         }
 
-        return complete.stream()
-                .filter(filter -> filter.toLowerCase().startsWith(args[args.length - 1].toLowerCase()))
+        return completions.stream()
+                .filter(c -> c.toLowerCase().startsWith(args[args.length - 1].toLowerCase()))
                 .toList();
     }
 }
