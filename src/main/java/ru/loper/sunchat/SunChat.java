@@ -13,7 +13,7 @@ public final class SunChat extends JavaPlugin {
     @Override
     public void onEnable() {
         ConfigManager configManager = new ConfigManager(this);
-        Bukkit.getPluginManager().registerEvents(new BukkitListener(configManager, this), this);
+        Bukkit.getPluginManager().registerEvents(new BukkitListener(configManager), this);
         Optional.ofNullable(getCommand("sunchat")).orElseThrow().setExecutor(new ChatCommand(configManager));
     }
 }

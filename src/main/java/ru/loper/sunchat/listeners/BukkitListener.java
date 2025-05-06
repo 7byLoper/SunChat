@@ -1,11 +1,10 @@
 package ru.loper.sunchat.listeners;
 
 import lombok.RequiredArgsConstructor;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import ru.loper.sunchat.SunChat;
 import ru.loper.sunchat.config.ConfigManager;
@@ -20,16 +19,15 @@ import java.util.UUID;
 public class BukkitListener implements Listener {
     private final Map<UUID, Long> lastMessageTime = new HashMap<>();
     private final ConfigManager configManager;
-    private final SunChat plugin;
 
     @EventHandler(ignoreCancelled = true)
-    public void onPlayerChat(AsyncPlayerChatEvent e) {
+    public void onPlayerChat(PlayerChatEvent e) {
         Player player = e.getPlayer();
         UUID uuid = player.getUniqueId();
         String message = e.getMessage();
         boolean isGlobal = !configManager.isLocalChatStatus() || message.startsWith("!");
 
-        if(!player.hasPermission("sunchat.bypass.close") && configManager.isCloseChat()){
+        if (!player.hasPermission("sunchat.bypass.close") && configManager.isCloseChat()) {
             player.sendMessage(configManager.getChatIsCloseMessage());
             e.setCancelled(true);
             return;
@@ -70,11 +68,9 @@ public class BukkitListener implements Listener {
                 .replace("{message}", isGlobal ? removeGlobalPrefix(message) : message));
 
         if (!isGlobal) {
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                e.getRecipients().clear();
-                e.getRecipients().add(player);
-                e.getRecipients().addAll(getRadius(player));
-            });
+            e.getRecipients().clear();
+            e.getRecipients().add(player);
+            e.getRecipients().addAll(getRadius(player));
         }
     }
 

@@ -44,7 +44,7 @@ public class ChatCommand implements CommandExecutor, TabCompleter {
         int clearedPlayers = 0;
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (!player.hasPermission("sunchat.clearbypass")) {
-                player.sendMessage("\n".repeat(100));
+                player.sendMessage("\n ".repeat(100));
                 clearedPlayers++;
             }
         }
