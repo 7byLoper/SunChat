@@ -4,14 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerChatEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import ru.loper.sunchat.SunChat;
 import ru.loper.sunchat.config.ConfigManager;
 import ru.loper.sunchat.utils.ChatUtils;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -21,7 +19,7 @@ public class BukkitListener implements Listener {
     private final ConfigManager configManager;
 
     @EventHandler(ignoreCancelled = true)
-    public void onPlayerChat(PlayerChatEvent e) {
+    public void onPlayerChat(AsyncPlayerChatEvent e) {
         Player player = e.getPlayer();
         UUID uuid = player.getUniqueId();
         String message = e.getMessage();
@@ -64,18 +62,16 @@ public class BukkitListener implements Listener {
         String format = isGlobal ? configManager.getGlobalChatFormat()
                 : configManager.getLocalChatFormat();
         e.setFormat(ChatUtils.replacePlaceholders(player, format)
-                .replace("{player}", player.getName())
-                .replace("{message}", isGlobal ? removeGlobalPrefix(message) : message));
+                .replace("%", "%%")
+                .replace("{player}", "%1$s")
+                .replace("{message}", "%2$s"));
+
+        e.setMessage(isGlobal ? removeGlobalPrefix(message) : message);
 
         if (!isGlobal) {
-            e.getRecipients().clear();
-            e.getRecipients().add(player);
-            e.getRecipients().addAll(getRadius(player));
+            int radius = configManager.getLocalChatRadius();
+            e.getRecipients().removeIf(recipient -> !ChatUtils.isApplicable(recipient, player, radius));
         }
-    }
-
-    public List<Player> getRadius(Player player) {
-        return player.getLocation().getNearbyPlayers(configManager.getLocalChatRadius()).stream().toList();
     }
 
     @EventHandler(ignoreCancelled = true)

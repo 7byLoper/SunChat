@@ -1,7 +1,9 @@
 package ru.loper.sunchat.utils;
 
 import me.clip.placeholderapi.PlaceholderAPI;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 import ru.loper.suncore.utils.Colorize;
 
 public class ChatUtils {
@@ -27,5 +29,17 @@ public class ChatUtils {
         if (seconds > 0) format.append(seconds).append(" сек.");
 
         return format.toString();
+    }
+    public static boolean isApplicable(@NotNull Player firstPlayer, @NotNull Player secondPlayer, int range) {
+        if (range == -2 || range == -3)
+            return true;
+        World firstPlayerWorld = firstPlayer.getWorld();
+        World secondPlayerWorld = secondPlayer.getWorld();
+        if (range == -1)
+            return firstPlayerWorld.equals(secondPlayerWorld);
+        if (range >= 0)
+            return (firstPlayerWorld.equals(secondPlayerWorld) && firstPlayer
+                    .getLocation().distanceSquared(secondPlayer.getLocation()) <= (range * range));
+        return false;
     }
 }
